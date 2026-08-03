@@ -1,5 +1,6 @@
 FROM n8nio/n8n:latest
 USER root
 COPY n8n-railway-entrypoint.sh /docker-entrypoint-railway.sh
+COPY n8n-railway-drop-priv.js /docker-entrypoint-railway.js
 RUN chmod +x /docker-entrypoint-railway.sh
 ENTRYPOINT ["/docker-entrypoint-railway.sh"]
