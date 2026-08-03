@@ -1,1 +1,4 @@
-.env.*
+*
+!Dockerfile.n8n-railway
+!n8n-railway-entrypoint.sh
+!.gitignore
