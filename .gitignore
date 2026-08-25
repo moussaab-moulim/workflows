@@ -9,3 +9,5 @@
 !automation-server.js
 !Dockerfile.automation
 !n8n-task-runners.json
+!railway.pdfextract.json
+!railway.automation.json
