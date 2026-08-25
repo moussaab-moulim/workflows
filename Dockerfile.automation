@@ -1,0 +1,6 @@
+FROM mcr.microsoft.com/playwright:v1.48.0-jammy
+WORKDIR /app
+RUN npm init -y && npm install playwright@1.48.0
+COPY automation-server.js server.js
+EXPOSE 4001
+CMD ["node", "server.js"]

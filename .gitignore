@@ -4,3 +4,8 @@
 !n8n-railway-drop-priv.js
 !railway.json
 !.gitignore
+!pdf-extract-server.js
+!Dockerfile.pdfextract
+!automation-server.js
+!Dockerfile.automation
+!n8n-task-runners.json
