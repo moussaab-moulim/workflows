@@ -1,6 +1,5 @@
 FROM node:20-alpine
 WORKDIR /app
-RUN echo "cache-buster-diagnostic-check"
-RUN npm install pdfjs-dist@3
+RUN npm install --no-audit --no-fund pdfjs-dist@3
 COPY pdf-extract-server.js server.js
 CMD ["node", "server.js"]
