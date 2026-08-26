@@ -70,7 +70,14 @@ async function handleFraisList() {
           facturation,
         }))
     );
-    return { rows };
+    // TEMPORARY: unfiltered raw rows, to check for incomplete/draft entries left
+    // behind by a client-side timeout after the server-side row was already
+    // created (see handleFraisAdd comment on the async post_pj request). Remove
+    // once confirmed clean.
+    const rawRows = await page.$$eval("#supp table tr", (trs) =>
+      trs.map((tr) => Array.from(tr.querySelectorAll("td")).map((td) => td.textContent.trim()))
+    );
+    return { rows, rawRows };
   } finally {
     await browser.close();
   }
