@@ -1,5 +1,6 @@
 const http = require("http");
 const pdfjsLib = require("pdfjs-dist/legacy/build/pdf.js");
+const { PDFDocument, StandardFonts, rgb } = require("pdf-lib");
 
 const monthNamesFr = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 
@@ -88,6 +89,24 @@ async function handleExtractBills(body) {
   return results;
 }
 
+// Fixed coordinates match the CRA template's "Jour" and "Total" row cells,
+// found by trial against the real template (see local session history).
+async function handleFillCraPdf(body) {
+  const { fileBase64, dayCount } = body;
+  const pdfDoc = await PDFDocument.load(Buffer.from(fileBase64, "base64"));
+  const page = pdfDoc.getPages()[0];
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+  const valueX = 235.5;
+  const jourRowY = 386.7;
+  const totalRowY = 337.2;
+  page.drawText(String(dayCount), { x: valueX, y: jourRowY, size: 11, font, color: rgb(0, 0, 0) });
+  page.drawText(String(dayCount), { x: valueX, y: totalRowY, size: 11, font, color: rgb(0, 0, 0) });
+
+  const filledBytes = await pdfDoc.save();
+  return { fileBase64: Buffer.from(filledBytes).toString("base64") };
+}
+
 const server = http.createServer((req, res) => {
   if (req.method === "POST" && req.url === "/extract-bills") {
     let body = "";
@@ -98,6 +117,22 @@ const server = http.createServer((req, res) => {
         const rows = await handleExtractBills(parsed);
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ rows }));
+      } catch (err) {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    return;
+  }
+  if (req.method === "POST" && req.url === "/fill-cra-pdf") {
+    let body = "";
+    req.on("data", (chunk) => { body += chunk; });
+    req.on("end", async () => {
+      try {
+        const parsed = JSON.parse(body);
+        const result = await handleFillCraPdf(parsed);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
       } catch (err) {
         res.writeHead(500, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ error: err.message }));

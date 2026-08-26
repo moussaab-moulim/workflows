@@ -1,5 +1,5 @@
 FROM node:20-alpine
 WORKDIR /app
-RUN npm install --no-audit --no-fund pdfjs-dist@3
+RUN npm install --no-audit --no-fund pdfjs-dist@3 pdf-lib
 COPY pdf-extract-server.js server.js
 CMD ["node", "server.js"]
