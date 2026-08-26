@@ -182,14 +182,20 @@ async function handleCraDays(body) {
       const m = b.innerText.match(/Compte rendu d'activité du mois de [^\n]+/);
       return m ? m[0] : null;
     });
+    // The day count populates via AJAX after the page/month loads. When the CRA
+    // page already opens on the target month (no month-switch clicks fired),
+    // there's no built-in buffer for that AJAX call to finish, so a same-tick
+    // read can race it and see an empty element. Wait for real text instead of
+    // assuming the element (if present at all) is already populated.
+    await page.waitForFunction(() => {
+      const el = document.querySelector(".mission-days-count");
+      return !!(el && el.innerText.trim().length > 0);
+    }, { timeout: 10000 }).catch(() => {});
+
     const daysEl = await page.$(".mission-days-count");
     const days = daysEl ? parseInt((await daysEl.innerText()).trim(), 10) : null;
 
-    // TEMPORARY: full page text so we can see the real markup around the day
-    // count when the selector misses. Remove once the selector is confirmed fixed.
-    const debugBodyText = days === null ? await page.$eval("body", (b) => b.innerText) : undefined;
-
-    return { month, days, heading: headingText, debugBodyText };
+    return { month, days, heading: headingText };
   } finally {
     await browser.close();
   }
