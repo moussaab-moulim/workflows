@@ -163,7 +163,7 @@ async function handleFraisAdd(body) {
     const saveButton = page.locator("#frm_frais [type=submit]");
     await saveButton.waitFor({ state: "visible", timeout: 10000 });
     await saveButton.click();
-    await page.waitForURL(/tab=supp/, { timeout: 15000 });
+    await page.waitForURL(/tab=supp/, { timeout: 45000 });
 
     return { ok: true, category, typeDeFrais, dateDeLaNote, amount, comment };
   } finally {
