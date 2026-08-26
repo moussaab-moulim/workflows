@@ -70,14 +70,7 @@ async function handleFraisList() {
           facturation,
         }))
     );
-    // TEMPORARY: unfiltered raw rows, to check for incomplete/draft entries left
-    // behind by a client-side timeout after the server-side row was already
-    // created (see handleFraisAdd comment on the async post_pj request). Remove
-    // once confirmed clean.
-    const rawRows = await page.$$eval("#supp table tr", (trs) =>
-      trs.map((tr) => Array.from(tr.querySelectorAll("td")).map((td) => td.textContent.trim()))
-    );
-    return { rows, rawRows };
+    return { rows };
   } finally {
     await browser.close();
   }
@@ -129,7 +122,7 @@ async function handleFraisAdd(body) {
     // Wait for the URL itself to change instead (confirmed live: can take ~9s).
     const urlBeforeSuivant = page.url();
     await Promise.all([
-      page.waitForURL((url) => url.toString() !== urlBeforeSuivant, { timeout: 30000 }),
+      page.waitForURL((url) => url.toString() !== urlBeforeSuivant, { timeout: 60000 }),
       page.click("input[type=submit][value=Suivant]"),
     ]);
     await page.waitForLoadState("networkidle", { timeout: 30000 });
