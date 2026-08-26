@@ -185,7 +185,11 @@ async function handleCraDays(body) {
     const daysEl = await page.$(".mission-days-count");
     const days = daysEl ? parseInt((await daysEl.innerText()).trim(), 10) : null;
 
-    return { month, days, heading: headingText };
+    // TEMPORARY: full page text so we can see the real markup around the day
+    // count when the selector misses. Remove once the selector is confirmed fixed.
+    const debugBodyText = days === null ? await page.$eval("body", (b) => b.innerText) : undefined;
+
+    return { month, days, heading: headingText, debugBodyText };
   } finally {
     await browser.close();
   }
