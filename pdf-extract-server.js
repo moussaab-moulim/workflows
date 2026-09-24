@@ -124,22 +124,6 @@ const server = http.createServer((req, res) => {
     });
     return;
   }
-  if (req.method === "POST" && req.url === "/debug-text") {
-    let body = "";
-    req.on("data", (chunk) => { body += chunk; });
-    req.on("end", async () => {
-      try {
-        const { fileBase64 } = JSON.parse(body);
-        const text = await getText(Buffer.from(fileBase64, "base64"));
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ text }));
-      } catch (err) {
-        res.writeHead(500, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: err.message }));
-      }
-    });
-    return;
-  }
   if (req.method === "POST" && req.url === "/fill-cra-pdf") {
     let body = "";
     req.on("data", (chunk) => { body += chunk; });
