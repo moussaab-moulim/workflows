@@ -121,10 +121,30 @@ async function handleFraisAdd(body) {
     // happens, leaving the selector wait below looking at a half-loaded document.
     // Wait for the URL itself to change instead (confirmed live: can take ~9s).
     const urlBeforeSuivant = page.url();
-    await Promise.all([
-      page.waitForURL((url) => url.toString() !== urlBeforeSuivant, { timeout: 60000 }),
-      page.click("input[type=submit][value=Suivant]"),
-    ]);
+    try {
+      await Promise.all([
+        page.waitForURL((url) => url.toString() !== urlBeforeSuivant, { timeout: 60000 }),
+        page.click("input[type=submit][value=Suivant]"),
+      ]);
+    } catch (err) {
+      // The click itself never throws even when the page is stuck (silent no-op,
+      // e.g. overlay eating it, or a validation error blocking submission) — only
+      // the URL-change wait times out. Capture real page state here instead of
+      // guessing blind next time this happens.
+      const diag = await page.evaluate(() => {
+        const loading = document.getElementById("loading");
+        const btn = document.querySelector("input[type=submit][value=Suivant]");
+        return {
+          url: location.href,
+          loadingVisible: loading ? loading.style.display !== "none" : null,
+          suivantExists: !!btn,
+          suivantVisible: btn ? btn.offsetParent !== null : null,
+          bodySnippet: document.body.innerText.slice(0, 500),
+        };
+      }).catch((evalErr) => ({ evalError: evalErr.message }));
+      console.error("Suivant navigation timeout — page diagnostics:", JSON.stringify(diag));
+      throw err;
+    }
     await page.waitForLoadState("networkidle", { timeout: 30000 });
     await page.waitForSelector("#sel_code_parent_type_frais", { timeout: 15000 });
 
